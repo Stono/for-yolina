@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cookwell-redirect-pod
+spec:
+  replicas: 2
+  minReadySeconds: 5
+  revisionHistoryLimit: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: cookwell-redirect-pod
+    spec:
+      volumes:
+      - name: nginx-config
+        secret:
+          secretName: cookwell-redirect-pod-config 
+      containers:
+      - name: nginx
+        image: stono/docker-nginx-letsencrypt:1.11.10-12 
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /nginx_status
+            port: internal
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 2
+          failureThreshold: 30
+        livenessProbe:
+          httpGet:
+            path: /nginx_status
+            port: internal
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+          periodSeconds: 5
+          failureThreshold: 1
+        env:
+        - name: LETSENCRYPT
+          value: 'false'
+        volumeMounts:
+        - mountPath: /config
+          name: nginx-config 
+        ports:
+        - containerPort: 80

@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cookwell 
+spec:
+  tls:
+  - hosts:
+    - www.cookwell.waitrose.com 
+    secretName: cookwell-www
+  - hosts:
+    - cookwell.waitrose.com
+    secretName: cookwell
+  rules:
+  - host: cookwell.waitrose.com 
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: cookwell-web-svc
+          servicePort: 80
+  - host: www.cookwell.waitrose.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: cookwell-redirect-svc
+          servicePort: 80
